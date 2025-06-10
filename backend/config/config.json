@@ -1,0 +1,24 @@
+{
+  "development": {
+    "username": "rootUser",
+    "password": "rootPass",
+    "database": "perndatabase",
+    "host": "localhost",
+    "port": 5432,
+    "dialect": "postgres"
+  },
+  "test": {
+    "username": "rootUser",
+    "password": "rootPass",
+    "database": "test_perndatabase",
+    "host": "fullstack-pern-db-1",
+    "dialect": "postgres"
+  },
+  "production": {
+    "username": "rootUser",
+    "password": "rootPass",
+    "database": "prod_perndatabase",
+    "host": "fullstack-pern-db-1",
+    "dialect": "postgres"
+  }
+}

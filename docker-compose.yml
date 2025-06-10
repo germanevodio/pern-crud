@@ -1,0 +1,69 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "5000:8080"
+    environment:
+      DATABASE_URL: postgres://rootUser:rootPass@db:5432/perndatabase
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - pern-network
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    environment:
+      VITE_APP_API_URL: http://localhost:5000
+    depends_on:
+      - backend
+    networks:
+      - pern-network
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: rootUser
+      POSTGRES_PASSWORD: rootPass
+      POSTGRES_DB: perndatabase
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rootUser -d perndatabase"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pern-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: adminPass
+      PGADMIN_LISTEN_PORT: 80
+    ports:
+      - "8080:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - pern-network
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    restart: unless-stopped
+
+volumes:
+  db-data:
+  pgadmin-data:
+
+networks:
+  pern-network:
+    driver: bridge
