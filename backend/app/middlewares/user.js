@@ -126,7 +126,7 @@ const validateUpdate = [
     check('phoneNumber')
         .notEmpty()
         .withMessage('phoneNumber is required')
-        .isMobilePhone()
+        .isString()
         .withMessage('The phoneNumber is invalid.'),
     check('role')
         .notEmpty()
@@ -163,11 +163,6 @@ const validateUpdate = [
         .withMessage('profilePicture is required')
         .isURL()
         .withMessage('The profilePicture must be a valid URL.'),
-    check('password')
-        .notEmpty()
-        .withMessage('password is required')
-        .isLength({ min: 6 })
-        .withMessage('The password is to short.'),
     checkRoleExist,
     checkDuplicateEmail,
     (req, res, next) => {

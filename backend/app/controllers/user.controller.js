@@ -120,7 +120,13 @@ export const update = async (req, res) => {
         postalCode: req.body.postalCode,
     };
 
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    const password = req.body.password;
+
+    let hashedPassword = "";
+
+    if (password) {
+        hashedPassword = await bcrypt.hash(password, 10);
+    }
 
     const user = {
         firstName: req.body.firstName,
@@ -131,8 +137,11 @@ export const update = async (req, res) => {
         status: req.body.status,
         address,
         profilePicture: req.body.profilePicture,
-        password: hashedPassword,
     };
+
+    if (password) {
+        user.password = hashedPassword;
+    }
 
     User.update(user, {
         where: { id },
