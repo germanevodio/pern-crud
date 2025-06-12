@@ -9,6 +9,7 @@ This project provides a simple Create, Read, Update, and Delete (CRUD) applicati
 To run this application, you'll need:
 
 * **Docker**
+* **Google API KEY** required to search and fill addres in add/edit user form
 
 ---
 
@@ -60,10 +61,11 @@ Follow these steps to get the application up and running on your local machine:
         ```bash
         /app $ npx sequelize-cli db:seed:all
         ```
-    
-6.  **Access the Application:** Open your web browser and go to: [http://localhost:5173](http://localhost:5173)
+6. **GOOGLE API KEY** In the file `frontend/src/components/googleMapsAddressPicker.jsx` change the string "YOUR_GOOGLE_API_KEY" with your Google API Key
 
-7.  **Login Credentials:** You can sign in to the web application with the following credentials:
+7.  **Access the Application:** Open your web browser and go to: [http://localhost:5173](http://localhost:5173)
+
+8.  **Login Credentials:** You can sign in to the web application with the following credentials:
     * **User:** `admin@example.com`
     * **Password:** `password`
 
