@@ -83,11 +83,6 @@ const validateCreation = [
         .withMessage('postalCode is required')
         .isString()
         .withMessage('The postalCode must be a text string.'),
-    check('profilePicture')
-        .notEmpty()
-        .withMessage('profilePicture is required')
-        .isURL()
-        .withMessage('The profilePicture must be a valid URL.'),
     check('password')
         .notEmpty()
         .withMessage('password is required')
@@ -96,10 +91,11 @@ const validateCreation = [
     checkRoleExist,
     checkDuplicateEmail,
     (req, res, next) => {
-        const errors = validationResult(req);
+        let errors = validationResult(req);
 
         if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
+            errors = errors.array();
+            return res.status(400).json({ message: errors[0]?.msg || "Unhandled error" });
         }
 
         next();
@@ -158,18 +154,14 @@ const validateUpdate = [
         .withMessage('postalCode is required')
         .isString()
         .withMessage('The postalCode must be a text string.'),
-    check('profilePicture')
-        .notEmpty()
-        .withMessage('profilePicture is required')
-        .isURL()
-        .withMessage('The profilePicture must be a valid URL.'),
     checkRoleExist,
     checkDuplicateEmail,
     (req, res, next) => {
-        const errors = validationResult(req);
+        let errors = validationResult(req);
 
         if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
+            errors = errors.array();
+            return res.status(400).json({ message: errors[0]?.msg || "Unhandled error" });
         }
 
         next();

@@ -1,10 +1,46 @@
+import { log } from "console";
 import db from "../models/index.js";
 import bcrypt from "bcryptjs";
+import multer from 'multer';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, path.join(__dirname, '../uploads/temp'));
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${Date.now()}-${file.originalname}`);
+    }
+});
+
+const fileFilter = (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+    } else {
+        cb(new Error('Only image files are allowed!'), false);
+    }
+};
+
+const upload = multer({
+    storage: storage,
+    fileFilter: fileFilter,
+    limits: {
+        fileSize: 1 * 1024 * 1024 // 1MB max
+    }
+});
+
+export const uploadProfilePicture = upload.single('profilePicture');
 
 const Op = db.Sequelize.Op;
 const User = db.users;
 
 export const create = async (req, res) => {
+    const profilePicturePath = req.file ? `/uploads/temp/${req.file.filename}` : '';
+
     const address = {
         street: req.body.street,
         number: req.body.number,
@@ -22,7 +58,7 @@ export const create = async (req, res) => {
         role: req.body.role,
         status: req.body.status,
         address,
-        profilePicture: req.body.profilePicture,
+        profilePicture: profilePicturePath,
         password: hashedPassword,
     };
 
@@ -113,6 +149,8 @@ export const findOne = (req, res) => {
 export const update = async (req, res) => {
     const id = req.params.id;
 
+    const profilePicturePath = req.file ? `/uploads/temp/${req.file.filename}` : '';
+
     const address = {
         street: req.body.street,
         number: req.body.number,
@@ -136,11 +174,14 @@ export const update = async (req, res) => {
         role: req.body.role,
         status: req.body.status,
         address,
-        profilePicture: req.body.profilePicture,
     };
 
     if (password) {
         user.password = hashedPassword;
+    }
+
+    if (profilePicturePath) {
+        user.profilePicture = profilePicturePath;
     }
 
     User.update(user, {
