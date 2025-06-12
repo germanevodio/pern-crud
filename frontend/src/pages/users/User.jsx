@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import UserService from "../../services/user.service";
 import Swal from 'sweetalert2';
-// import GoogleMapsAddressPicker from "../../components/googleMapsAddressPicker";
+import GoogleMapsAddressPicker from "../../components/googleMapsAddressPicker";
 
 function User() {
   const { id } = useParams();
@@ -35,15 +35,15 @@ function User() {
 
   const [message, setMessage] = useState("");
 
-  // const handleAddressSelect = (addressDetails) => {
-  //   setCurrentUser(prevUser => ({
-  //     ...prevUser,
-  //     street: addressDetails.street || "",
-  //     number: addressDetails.number || "",
-  //     city: addressDetails.city || "",
-  //     postalCode: addressDetails.postalCode || "",
-  //   }));
-  // };
+  const handleAddressSelect = (addressDetails) => {
+    setCurrentUser(prevUser => ({
+      ...prevUser,
+      street: addressDetails.street || "",
+      number: addressDetails.number || "",
+      city: addressDetails.city || "",
+      postalCode: addressDetails.postalCode || "",
+    }));
+  };
 
   const getUser = (id) => {
     UserService.get(id)
@@ -113,7 +113,16 @@ function User() {
     UserService.update(currentUser.id, dataToSend)
       .then((response) => {
         setCurrentUser(dataToSend);
-        setMessage("The user updated successfully");
+
+        const swalMessage = "The user status updated successfully";
+
+        setMessage(swalMessage);
+
+        Swal.fire(
+          'Updated',
+          swalMessage,
+          'success'
+        );
       })
       .catch((e) => {
       });
@@ -145,7 +154,15 @@ function User() {
 
     UserService.update(currentUser.id, formData)
       .then((response) => {
-        setMessage("The user updated successfully");
+        const swalMessage = "The user updated successfully";
+
+        setMessage(swalMessage);
+
+        Swal.fire(
+          'Updated',
+          swalMessage,
+          'success'
+        );
       })
       .catch((e) => {
       });
@@ -297,8 +314,8 @@ function User() {
             </select>
           </div>
 
-          {/* <div className="mb-4">
-            <label className="block mb-1 font-medium">Address</label>
+          <div className="mb-4">
+            <label className="block mb-1 font-medium">Address in map</label>
             <GoogleMapsAddressPicker
               onAddressSelect={handleAddressSelect}
               initialAddress={{
@@ -308,7 +325,7 @@ function User() {
                 postalCode: currentUser.postalCode
               }}
             />
-          </div> */}
+          </div>
 
           <div className="mb-2">
             <label className="block font-medium" htmlFor="street">

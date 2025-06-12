@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import UserService from "../../services/user.service";
+import GoogleMapsAddressPicker from "../../components/googleMapsAddressPicker";
 
 function AddUser() {
   const [firstName, setFirstName] = useState("");
@@ -34,6 +35,16 @@ function AddUser() {
       setProfilePictureFile(null);
       setProfilePicture("");
     }
+  };
+
+  const handleAddressSelect = (addressDetails) => {
+    setCurrentUser(prevUser => ({
+      ...prevUser,
+      street: addressDetails.street || "",
+      number: addressDetails.number || "",
+      city: addressDetails.city || "",
+      postalCode: addressDetails.postalCode || "",
+    }));
   };
 
   const saveUser = () => {
@@ -169,6 +180,19 @@ function AddUser() {
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </select>
+          </div>
+
+          <div className="mb-4">
+            <label className="block mb-1 font-medium">Address in map</label>
+            <GoogleMapsAddressPicker
+              onAddressSelect={handleAddressSelect}
+              initialAddress={{
+                street: currentUser.street,
+                number: currentUser.number,
+                city: currentUser.city,
+                postalCode: currentUser.postalCode
+              }}
+            />
           </div>
 
           <div className="mb-2">
