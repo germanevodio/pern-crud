@@ -1,14 +1,17 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import UserService from "../../services/user.service";
+import Swal from 'sweetalert2';
+// import GoogleMapsAddressPicker from "../../components/googleMapsAddressPicker";
 
 function User() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const backendBaseUrl = "http://localhost:5000";
 
   const plainUser = (user) => {
     const { address, ...userAux } = user;
-    return { ...userAux, ...address };
+    return { ...userAux, ...address, password: "" };
   }
 
   const [currentUser, setCurrentUser] = useState({
@@ -27,17 +30,35 @@ function User() {
     password: "",
   });
 
+  const [profilePictureFile, setProfilePictureFile] = useState(null);
+  const [profilePicturePreview, setProfilePicturePreview] = useState("");
+
   const [message, setMessage] = useState("");
+
+  // const handleAddressSelect = (addressDetails) => {
+  //   setCurrentUser(prevUser => ({
+  //     ...prevUser,
+  //     street: addressDetails.street || "",
+  //     number: addressDetails.number || "",
+  //     city: addressDetails.city || "",
+  //     postalCode: addressDetails.postalCode || "",
+  //   }));
+  // };
 
   const getUser = (id) => {
     UserService.get(id)
       .then((response) => {
-        console.log('getUser', response);
         const data = plainUser(response.data);
+
         setCurrentUser(data);
+
+        if (data.profilePicture) {
+          setProfilePicturePreview(fullProfilePictureUrl(data.profilePicture));
+        } else {
+          setProfilePicturePreview("");
+        }
       })
       .catch((e) => {
-        console.error(e);
       });
   };
 
@@ -50,52 +71,160 @@ function User() {
     setCurrentUser({ ...currentUser, [name]: value });
   };
 
-  const updateStatus = (status) => {
-    status = status ? 'active' : 'inactive';
+  const handleProfilePictureChange = (e) => {
+    const file = e.target.files[0];
 
-    const data = {
+    if (file) {
+      setProfilePictureFile(file);
+
+      const reader = new FileReader();
+
+      reader.onloadend = () => {
+        setProfilePicturePreview(reader.result);
+      };
+
+      reader.readAsDataURL(file);
+    } else {
+      setProfilePictureFile(null);
+
+      setProfilePicturePreview(
+        currentUser.profilePicture
+          ? fullProfilePictureUrl(currentUser.profilePicture)
+          : "");
+    }
+  };
+
+  const fullProfilePictureUrl = (imgPath) => {
+    if (imgPath && imgPath.startsWith("/uploads")) {
+      return `${backendBaseUrl}${imgPath}`;
+    }
+
+    return imgPath;
+  }
+
+  const updateStatus = (isActive) => {
+    const newStatus = isActive ? 'active' : 'inactive';
+
+    const dataToSend = {
       ...currentUser,
-      status,
+      status: newStatus,
     };
 
-    UserService.update(currentUser.id, data)
+    UserService.update(currentUser.id, dataToSend)
       .then((response) => {
-        console.log('updateStatus', response.data);
-        setCurrentUser(data);
+        setCurrentUser(dataToSend);
         setMessage("The user updated successfully");
       })
       .catch((e) => {
-        console.error(e);
       });
   };
 
   const updateUser = () => {
-    UserService.update(currentUser.id, currentUser)
+    const formData = new FormData();
+
+    formData.append('firstName', currentUser.firstName);
+    formData.append('lastName', currentUser.lastName);
+    formData.append('email', currentUser.email);
+    formData.append('phoneNumber', currentUser.phoneNumber);
+    formData.append('role', currentUser.role);
+    formData.append('status', currentUser.status);
+    formData.append('street', currentUser.street);
+    formData.append('number', currentUser.number);
+    formData.append('city', currentUser.city);
+    formData.append('postalCode', currentUser.postalCode);
+    formData.append('password', currentUser.password);
+
+    if (profilePictureFile) {
+      formData.append('profilePicture', profilePictureFile);
+    } else {
+      formData.append('profilePicture', currentUser.profilePicture);
+    }
+
+    for (const pair of formData.entries()) {
+    }
+
+    UserService.update(currentUser.id, formData)
       .then((response) => {
-        console.log(response.data);
         setMessage("The user updated successfully");
       })
       .catch((e) => {
-        console.error(e);
       });
   };
 
   const deleteUser = () => {
-    UserService.remove(currentUser.id)
-      .then((response) => {
-        console.log(response.data);
-        navigate("/users");
-      })
-      .catch((e) => {
-        console.error(e);
-      });
+    setMessage("");
+
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "this action is not reversible",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        UserService.remove(currentUser.id)
+          .then((response) => {
+            Swal.fire(
+              'Deleted',
+              'User has destroy',
+              'success'
+            );
+            navigate("/users");
+          })
+          .catch((e) => {
+            Swal.fire(
+              'Error',
+              'Unhandled error in destroy user',
+              'error'
+            );
+          });
+      }
+      else if (result.dismiss === Swal.DismissReason.cancel) {
+        Swal.fire(
+          'Canceled',
+          'The delete action is canceled',
+          'info'
+        );
+      }
+    });
+
   };
 
   return (
     <div>
-      {currentUser ? (
+      {currentUser.id ? (
         <div className="max-w-lg mx-auto p-4 bg-slate-100 dark:bg-slate-700 rounded shadow">
           <h4 className="font-bold text-xl mb-2">Edit user</h4>
+          <div className="mb-4 text-center">
+            {profilePicturePreview ? (
+              <img
+                src={profilePicturePreview}
+                alt={`${currentUser.firstName}'s profile`}
+                className="w-32 h-32 object-cover rounded-full mx-auto border-2 border-gray-300 shadow-md"
+              />
+            ) : (
+              <div className="w-32 h-32 bg-gray-200 rounded-full mx-auto flex items-center justify-center text-gray-500">
+                No Image
+              </div>
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              id="profile-picture-upload"
+              onChange={handleProfilePictureChange}
+              name="profilePicture"
+            />
+            <label
+              htmlFor="profile-picture-upload"
+              className="mt-3 inline-block bg-blue-500 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-600 transition duration-200"
+            >
+              Change Profile Picture
+            </label>
+          </div>
           <div className="mb-2">
             <label className="block font-medium" htmlFor="firstName">
               First name
@@ -156,15 +285,30 @@ function User() {
             <label className="block font-medium" htmlFor="role">
               Role
             </label>
-            <input
-              type="text"
+            <select
               className="border border-gray-300 rounded w-full px-2 py-1"
               id="role"
               name="role"
               value={currentUser.role}
               onChange={handleInputChange}
-            />
+            >
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
           </div>
+
+          {/* <div className="mb-4">
+            <label className="block mb-1 font-medium">Address</label>
+            <GoogleMapsAddressPicker
+              onAddressSelect={handleAddressSelect}
+              initialAddress={{
+                street: currentUser.street,
+                number: currentUser.number,
+                city: currentUser.city,
+                postalCode: currentUser.postalCode
+              }}
+            />
+          </div> */}
 
           <div className="mb-2">
             <label className="block font-medium" htmlFor="street">
@@ -223,20 +367,6 @@ function User() {
           </div>
 
           <div className="mb-2">
-            <label className="block font-medium" htmlFor="profilePicture">
-              Profile picture
-            </label>
-            <input
-              type="text"
-              className="border border-gray-300 rounded w-full px-2 py-1"
-              id="profilePicture"
-              name="profilePicture"
-              value={currentUser.profilePicture}
-              onChange={handleInputChange}
-            />
-          </div>
-
-          <div className="mb-2">
             <label className="block font-medium" htmlFor="password">
               Password
             </label>
@@ -247,6 +377,7 @@ function User() {
               name="password"
               value={currentUser.password}
               onChange={handleInputChange}
+              placeholder="Blank to keep current password"
             />
           </div>
 

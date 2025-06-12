@@ -13,32 +13,56 @@ function AddUser() {
   const [city, setCity] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [profilePicture, setProfilePicture] = useState("");
+  const [profilePictureFile, setProfilePictureFile] = useState(null);
   const [password, setPassword] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
-  const saveUser = () => {
-    const data = {
-      firstName,
-      lastName,
-      email,
-      phoneNumber,
-      role,
-      status,
-      street,
-      number,
-      city,
-      postalCode,
-      profilePicture,
-      password,
-    };
+  const handleProfilePictureChange = (e) => {
+    const file = e.target.files[0];
 
-    UserService.create(data)
+    if (file) {
+      setProfilePictureFile(file);
+
+      const reader = new FileReader();
+
+      reader.onloadend = () => {
+        setProfilePicture(reader.result);
+      };
+
+      reader.readAsDataURL(file);
+    } else {
+      setProfilePictureFile(null);
+      setProfilePicture("");
+    }
+  };
+
+  const saveUser = () => {
+    const formData = new FormData();
+
+    formData.append('firstName', firstName);
+    formData.append('lastName', lastName);
+    formData.append('email', email);
+    formData.append('phoneNumber', phoneNumber);
+    formData.append('role', role);
+    formData.append('status', status);
+    formData.append('street', street);
+    formData.append('number', number);
+    formData.append('city', city);
+    formData.append('postalCode', postalCode);
+    formData.append('password', password);
+
+    if (profilePictureFile) {
+      formData.append('profilePicture', profilePictureFile);
+    } else {
+      formData.append('profilePicture', "");
+    }
+
+    UserService.create(formData)
       .then((response) => {
-        console.log(response.data);
         setSubmitted(true);
       })
       .catch((e) => {
-        console.log(e);
+        console.error('UserService.create', e);
       });
   };
 
@@ -54,6 +78,7 @@ function AddUser() {
     setCity("");
     setPostalCode("");
     setProfilePicture("");
+    setProfilePictureFile(null);
     setPassword("");
     setSubmitted(false);
   };
@@ -118,22 +143,32 @@ function AddUser() {
 
           <div className="mb-2">
             <label className="block mb-1 font-medium">Role</label>
-            <input
-              type="text"
+            <select
               className="border border-gray-300 rounded w-full px-2 py-1"
+              id="role"
+              name="role"
               value={role}
               onChange={(e) => setRole(e.target.value)}
-            />
+            >
+              <option value="">Choose one</option>
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
           </div>
 
           <div className="mb-2">
             <label className="block mb-1 font-medium">Status</label>
-            <input
-              type="text"
+            <select
               className="border border-gray-300 rounded w-full px-2 py-1"
+              id="status"
+              name="status"
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-            />
+            >
+              <option value="active">Choose one</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
           </div>
 
           <div className="mb-2">
@@ -179,11 +214,28 @@ function AddUser() {
           <div className="mb-2">
             <label className="block mb-1 font-medium">Profile picture</label>
             <input
-              type="text"
-              className="border border-gray-300 rounded w-full px-2 py-1"
-              value={profilePicture}
-              onChange={(e) => setProfilePicture(e.target.value)}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              id="profile-picture-upload"
+              onChange={handleProfilePictureChange}
+              name="profilePicture"
             />
+            <label
+              htmlFor="profile-picture-upload"
+              className="bg-blue-500 text-white px-3 py-2 rounded cursor-pointer inline-block hover:bg-blue-600"
+            >
+              Upload Image
+            </label>
+            {profilePicture && (
+              <div className="mt-2">
+                <img
+                  src={profilePicture}
+                  alt="Profile Preview"
+                  className="w-24 h-24 object-cover rounded-full border border-gray-300"
+                />
+              </div>
+            )}
           </div>
 
           <div className="mb-2">

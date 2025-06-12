@@ -107,8 +107,6 @@ export const AuthProvider = ({ children }) => {
                 setLoading(false);
 
             } catch (error) {
-
-                console.error("Error durante la verificación inicial del token:", error);
                 setIsAuthenticated(false);
                 setUser(null);
                 Cookies.remove("token");

@@ -3,10 +3,7 @@ import Cookies from "js-cookie";
 import Swal from 'sweetalert2';
 
 const http = axios.create({
-    baseURL: "http://localhost:5000/api/v1",
-    headers: {
-        "Content-Type": "application/json",
-    },
+    baseURL: "http://localhost:5000/api/v1"
 });
 
 http.interceptors.request.use(
@@ -15,6 +12,10 @@ http.interceptors.request.use(
 
         if (token) {
             config.headers.Authorization = `${token}`;
+        }
+
+        if (config.data instanceof FormData) {
+            delete config.headers['Content-Type'];
         }
 
         return config;
@@ -39,7 +40,7 @@ http.interceptors.response.use(
                 case 401:
                     Swal.fire({
                         icon: 'error',
-                        title: 'Unautorized',
+                        title: 'Unauthorized',
                         text: message,
                         confirmButtonText: 'Ok'
                     }).then(() => {
@@ -131,8 +132,7 @@ const create = (data) => {
 };
 
 const update = (id, data) => {
-    const { password, ...newData } = data;
-    return http.put(`/users/${id}`, newData);
+    return http.put(`/users/${id}`, data);
 };
 
 const remove = (id) => {
