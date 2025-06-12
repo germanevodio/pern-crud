@@ -60,7 +60,7 @@ Follow these steps to get the application up and running on your local machine:
         ```bash
         /app $ npx sequelize-cli db:seed:all
         ```
-
+    
 6.  **Access the Application:** Open your web browser and go to: [http://localhost:5173](http://localhost:5173)
 
 7.  **Login Credentials:** You can sign in to the web application with the following credentials:
@@ -70,7 +70,7 @@ Follow these steps to get the application up and running on your local machine:
 ---
 
 ## Alternatives and Customization
-
+* **Postman Collection:** In the backen folder includes a file with collection to testing the backend. Remember update the login token stored.
 * **PgAdmin Access:** The stack includes **PgAdmin** for convenient database management via a web browser.
     * **Access URL:** Typically accessible through [http://localhost:8080](http://localhost:8080) (as per the `docker ps` output, where `8080` maps to the internal `80` port of pgAdmin).
     * **Credentials:**
